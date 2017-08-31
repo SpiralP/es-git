@@ -1,4 +1,4 @@
-import { Type, Mode, Constructor, IRawRepo, Hash, isFile } from '@es-git/core';
+import { Type, Mode, Constructor, IRawRepo, Hash, isFile, decode } from '@es-git/core';
 import { IObjectRepo, GitObject, CommitObject, TreeObject } from '@es-git/object-mixin';
 
 export type HashAndCommitObject = {
@@ -17,13 +17,16 @@ export interface IWalkersRepo {
   walkTree(hash : Hash, iterateFolders? : boolean) : AsyncIterableIterator<HashModePath>
 }
 
-export default function walkersMixin<T extends Constructor<IObjectRepo>>(repo : T) : Constructor<IWalkersRepo> & T {
+export default function walkersMixin<T extends Constructor<IRawRepo & IObjectRepo>>(repo : T) : Constructor<IWalkersRepo> & T {
   return class WalkersRepo extends repo implements IWalkersRepo {
     constructor(...args : any[]){
       super(...args);
     }
 
     async *walkCommits(...hash : Hash[]) : AsyncIterableIterator<HashAndCommitObject> {
+      const blob = await this.loadMetadata('shallow');
+      const shallows = blob ? new Set(decode(blob).split('\n')) : null;
+
       const queue = hash;
       const visited = new Set<Hash>(queue);
       while(queue.length > 0){
@@ -33,6 +36,9 @@ export default function walkersMixin<T extends Constructor<IObjectRepo>>(repo : 
         if(!commit) throw new Error(`Could not find object ${hash}`);
         if(commit.type !== Type.commit) throw new Error(`Object is not a commit ${hash}`);
         yield {hash, commit};
+        if (shallows && shallows.has(hash)) {
+          commit.body.parents.length = 0;
+        }
         for(const parent of commit.body.parents){
           if(visited.has(parent)) continue;
           visited.add(parent);
