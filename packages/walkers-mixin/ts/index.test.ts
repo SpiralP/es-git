@@ -149,6 +149,32 @@ const WalkersRepo = walkersMixin(class TestRepo {
   async loadObject(hash : string){
     return this.load(hash);
   }
+
+  listRefs(): Promise<string[]> {
+    throw new Error("Method not implemented.");
+  }
+  getRef(ref: string): Promise<Hash | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  setRef(ref: string, hash: Hash | undefined): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  saveRaw(hash: Hash, object: Uint8Array): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  loadRaw(hash: Hash): Promise<Uint8Array | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  hasObject(hash: Hash): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  saveMetadata(name: string, value: Uint8Array | undefined): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  loadMetadata(name: string): Promise<Uint8Array | undefined> {
+    if (name === 'shallow') return Promise.resolve(undefined);
+    throw new Error(`loadMetadata '${name}' not implemented.`);
+  }
 });
 
 function makeCommit(message : string, ...parents : Hash[]) : CommitBody{
