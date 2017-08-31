@@ -40,11 +40,12 @@ export default async function fetch({url, fetch, localRefs, refspec, hasObject, 
 
   refspec = Array.isArray(refspec) ? refspec : [refspec];
   const wanted = await differingRefs(localRefs, remoteRefs, refspec, hasObject, shallows, unshallow);
+  const refs = remoteRefs.map(remoteToLocal(refspec)).filter(x => x) as Ref[];
 
   if(wanted.length == 0){
     return {
       objects: function*() : IterableIterator<RawObject> {}(),
-      refs: [] as Ref[],
+      refs,
       shallow: [] as Hash[],
       unshallow: [] as Hash[]
     }
@@ -58,7 +59,7 @@ export default async function fetch({url, fetch, localRefs, refspec, hasObject, 
 
   return {
     objects: unpack(parsedResponse.pack),
-    refs: remoteRefs.map(remoteToLocal(refspec)).filter(x => x) as Ref[],
+    refs,
     shallow: parsedResponse.shallow,
     unshallow: parsedResponse.unshallow
   };
