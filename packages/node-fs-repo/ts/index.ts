@@ -45,8 +45,11 @@ export default class NodeFsRepo implements IRawRepo {
     const refs = [];
     for(const path of queue){
       const absolutePath = join(this.path, path);
-      const stat = await fs.stat(absolutePath);
-      if(stat.isDirectory()){
+      let stat = null;
+      try {
+        stat = await fs.stat(absolutePath);
+      } catch (e) { }
+      if (stat ? stat.isDirectory() : false) {
         const files : string[] = await fs.readDir(absolutePath);
         queue.push(...files.map(file => join(path, file)));
       }else{
@@ -76,8 +79,11 @@ export default class NodeFsRepo implements IRawRepo {
   }
 
   async hasObject(hash: string): Promise<boolean> {
-    const stat = await fs.stat(join(this.path, ...objectsPath(hash)));
-    return stat.isFile();
+    let stat = null;
+    try {
+      stat = await fs.stat(join(this.path, ...objectsPath(hash)));
+    } catch (e) { }
+    return stat ? stat.isFile() : false;
   }
 
   async saveMetadata(name: string, value: Uint8Array | undefined): Promise<void> {
