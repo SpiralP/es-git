@@ -142,7 +142,7 @@ export default class LRU<TKey, TValue> {
   evict() {
     if (!this.tail) return
     var key = this.tail
-    var value = this.remove(this.tail)
+    this.remove(key)
   }
 
   private _safeGet(key : TKey | null){
